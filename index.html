@@ -1,0 +1,2032 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Untitled test · Test builder</title>
+<style>
+  :root {
+    --bg: #f7f7f7;
+    --white: #fff;
+    --line: #ebedf0;
+    --line-strong: #dde0e4;
+    --ink-1: #1c1c1c;
+    --ink-2: #353535;
+    --ink-3: #4d4d4d;
+    --ink-4: #646464;
+    --ink-5: #8a8f96;
+    --blue-25: #f5f7fe;
+    --blue-50: #ecf0fe;
+    --blue-100: #d9e1ff;
+    --blue-200: #8ba0ff;
+    --blue-400: #5473ff;
+    --blue-500: #305cfd;
+    --blue-700: #1c39b7;
+    --blue-900: #000c4d;
+    --aqua-100: #d6f3fc;
+    --aqua-200: #98e1fc;
+    --aqua-600: #26a0c5;
+    --aqua-800: #134e60;
+    --purple-500: #8b2ca4;
+    --status-warn-bg: #fff4e0;
+    --status-warn-fg: #8a4b00;
+    --status-warn-line: #f5d5b3;
+    --status-ok-bg: #e6f6ec;
+    --status-ok-fg: #0e6b3a;
+    --status-err-bg: #fde9e9;
+    --status-err-fg: #b3261e;
+    --radius-card: 12px;
+    --radius-input: 8px;
+    --shadow-selected: 0 0 0 3px rgba(84, 115, 255, 0.18);
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; height: 100%; }
+  body {
+    font-family: 'Proxima Nova', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    color: var(--ink-1);
+    background: var(--bg);
+    -webkit-font-smoothing: antialiased;
+    letter-spacing: -0.2px;
+    font-size: 14px;
+    line-height: 1.4;
+  }
+  button { font: inherit; color: inherit; cursor: pointer; }
+  input, textarea { font: inherit; color: inherit; }
+
+  /* ──────────────── Top nav ──────────────── */
+  .topnav {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    height: 64px;
+    padding: 0 20px;
+    background: var(--white);
+    border-bottom: 1px solid var(--line);
+    gap: 16px;
+  }
+  .topnav .left { display: flex; align-items: center; gap: 10px; min-width: 0; }
+  .topnav .right { display: flex; align-items: center; gap: 12px; justify-content: flex-end; }
+
+  .icon-btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 36px; height: 36px; border-radius: 8px; background: transparent;
+    border: 0; color: var(--ink-2);
+  }
+  .icon-btn:hover { background: var(--bg); }
+  .icon-btn svg { width: 18px; height: 18px; }
+
+  .logomark {
+    width: 32px; height: 32px; border-radius: 8px; background: var(--blue-500);
+    display: inline-flex; align-items: center; justify-content: center;
+    color: #fff; font-weight: 800; font-size: 14px; flex-shrink: 0;
+  }
+
+  .test-title {
+    display: inline-flex; align-items: center; gap: 8px;
+    height: 36px; padding: 0 10px; border-radius: 8px; cursor: pointer;
+  }
+  .test-title:hover { background: var(--bg); }
+  .test-title .name {
+    font-weight: 600; font-size: 16px; color: var(--ink-1);
+    max-width: 280px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .test-title svg { width: 12px; height: 12px; color: var(--ink-3); }
+
+  .saved {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 13px; color: var(--ink-4); margin-left: 6px;
+  }
+  .saved .check {
+    width: 14px; height: 14px; border-radius: 50%; background: var(--status-ok-bg);
+    display: inline-flex; align-items: center; justify-content: center; color: var(--status-ok-fg);
+  }
+  .saved .check svg { width: 9px; height: 9px; }
+
+  /* Center tabs */
+  .tabs { display: flex; align-items: stretch; height: 64px; }
+  .tab {
+    position: relative; height: 64px; padding: 0 14px; display: inline-flex;
+    align-items: center; background: transparent; border: 0; font-size: 15px;
+    color: var(--ink-3); font-weight: 400;
+  }
+  .tab[aria-selected="true"] { color: var(--ink-1); font-weight: 600; }
+  .tab[aria-selected="true"]::after {
+    content: ""; position: absolute; left: 14px; right: 14px; bottom: 0;
+    height: 2px; background: var(--ink-1);
+  }
+  .tab[aria-disabled="true"] { color: var(--ink-5); cursor: default; }
+  .tabs .vbar { width: 1px; background: var(--line); margin: 16px 16px; }
+
+  /* Search input */
+  .search {
+    display: flex; align-items: center; height: 36px; padding: 0 12px;
+    border: 1px solid var(--line-strong); border-radius: 999px; background: #fff;
+    gap: 8px; min-width: 220px;
+  }
+  .search svg { width: 16px; height: 16px; color: var(--ink-3); }
+  .search input {
+    border: 0; outline: none; background: transparent; flex: 1;
+    font-size: 14px; color: var(--ink-3);
+  }
+
+  .notif {
+    position: relative; width: 36px; height: 36px; border-radius: 50%;
+    background: var(--blue-500); color: #fff; border: 0; cursor: pointer;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 13px;
+  }
+  .help {
+    width: 36px; height: 36px; border-radius: 50%; background: transparent;
+    border: 1px solid var(--line-strong); color: var(--ink-3); display: inline-flex;
+    align-items: center; justify-content: center; cursor: pointer; font-weight: 600;
+  }
+  .avatar {
+    width: 36px; height: 36px; border-radius: 50%; background: var(--blue-100);
+    color: var(--blue-900); display: inline-flex; align-items: center; justify-content: center;
+    font-weight: 600; font-size: 13px;
+  }
+  .draft-tag {
+    height: 24px; padding: 0 10px; border-radius: 6px; background: var(--bg);
+    color: var(--ink-4); font-size: 13px; line-height: 24px; align-self: center;
+  }
+
+  /* ──────────────── Body ──────────────── */
+  .body-row { display: grid; grid-template-columns: 280px 1fr 280px; gap: 24px; padding: 24px; min-height: calc(100vh - 64px); align-items: start; transition: padding-right .3s cubic-bezier(.2,.8,.2,1); }
+
+  /* Sidebar */
+  .sidebar { display: flex; flex-direction: column; gap: 4px; }
+  .add-btn-wrap { position: relative; }
+  .add-main {
+    height: 40px; width: 100%; border-radius: 10px; border: 1px solid var(--line-strong);
+    background: #fff; display: flex; align-items: center; justify-content: center; gap: 8px;
+    font-weight: 600; font-size: 15px; color: var(--ink-1); padding: 0 12px;
+  }
+  .add-main:hover { background: #fafbfc; }
+  .add-main svg { width: 14px; height: 14px; }
+  .add-menu {
+    position: absolute; top: calc(100% + 6px); left: 0; right: 0; z-index: 30;
+    background: #fff; border: 1px solid var(--line-strong); border-radius: 12px;
+    box-shadow: 0 12px 30px rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.05);
+    padding: 6px; display: none;
+  }
+  .add-menu.open { display: block; }
+  .add-menu button {
+    width: 100%; text-align: left; padding: 10px 10px; border: 0; background: transparent;
+    border-radius: 8px; display: flex; align-items: center; gap: 10px; font-size: 14px;
+  }
+  .add-menu button:hover { background: var(--blue-50); }
+  .add-menu .pill {
+    width: 24px; height: 24px; border-radius: 6px; flex-shrink: 0; display: inline-flex;
+    align-items: center; justify-content: center;
+  }
+  .add-menu .pill.task { background: var(--aqua-100); color: var(--aqua-800); }
+  .add-menu .pill.question { background: #f3e6f6; color: var(--purple-500); }
+  .add-menu .pill svg { width: 12px; height: 12px; }
+  .add-menu .text { display: flex; flex-direction: column; }
+  .add-menu .sub { font-size: 12px; color: var(--ink-4); margin-top: 1px; }
+
+  .nav-list { display: flex; flex-direction: column; gap: 2px; margin-top: 4px; }
+  .nav-item {
+    display: flex; align-items: center; gap: 8px; height: 40px;
+    border-radius: 8px; padding: 0 8px 0 10px; border: 0; background: transparent;
+    width: 100%; text-align: left; color: var(--ink-1); font-size: 14px;
+    position: relative;
+  }
+  .nav-item:hover { background: var(--blue-50); }
+  .nav-item[aria-current="true"] {
+    background: var(--blue-50);
+  }
+  .nav-item[aria-current="true"]::before {
+    content: ""; position: absolute; left: 0; top: 6px; bottom: 6px;
+    width: 3px; border-radius: 2px; background: var(--blue-500);
+  }
+  .nav-item .icon {
+    width: 22px; height: 22px; border-radius: 6px; flex-shrink: 0;
+    display: inline-flex; align-items: center; justify-content: center;
+  }
+  .nav-item .icon.task { background: var(--aqua-100); color: var(--aqua-800); }
+  .nav-item .icon.question { background: #f3e6f6; color: var(--purple-500); }
+  .nav-item .icon svg { width: 12px; height: 12px; }
+  .nav-item .label { flex: 1; font-weight: 600; }
+  .nav-item .drag {
+    width: 18px; opacity: 0; display: inline-flex; align-items: center;
+    color: var(--ink-4);
+  }
+  .nav-item:hover .drag { opacity: 1; }
+
+  .nav-sub {
+    display: flex; align-items: center; gap: 8px; height: 32px;
+    padding-left: 44px; color: var(--ink-4); font-size: 13px;
+    border-radius: 8px; border: 0; background: transparent; width: 100%;
+    text-align: left; cursor: pointer; position: relative;
+  }
+  .nav-sub:hover { background: var(--bg); }
+  .nav-sub[aria-current="true"] { color: var(--ink-1); }
+  .nav-sub[aria-current="true"]::before {
+    content: ""; position: absolute; left: 0; top: 4px; bottom: 4px;
+    width: 3px; border-radius: 2px; background: var(--blue-500);
+  }
+
+  /* Canvas */
+  .canvas { display: flex; flex-direction: column; gap: 24px; min-width: 0; max-width: 920px; margin: 0 auto; width: 100%; }
+
+  /* Card */
+  .qcard {
+    background: #fff; border: 1px solid var(--line); border-radius: var(--radius-card);
+    transition: box-shadow .12s ease, border-color .12s ease;
+  }
+  .qcard.is-selected { border-color: var(--blue-400); box-shadow: var(--shadow-selected); }
+
+  .qcard-head {
+    display: flex; align-items: center; gap: 10px;
+    padding: 14px 20px; border-bottom: 1px solid var(--line);
+  }
+  .qcard-head .pict {
+    width: 24px; height: 24px; border-radius: 7px; flex-shrink: 0;
+    display: inline-flex; align-items: center; justify-content: center;
+  }
+  .qcard-head .pict.task { background: var(--aqua-100); color: var(--aqua-800); }
+  .qcard-head .pict.question { background: #f3e6f6; color: var(--purple-500); }
+  .qcard-head .pict svg { width: 12px; height: 12px; }
+  .qcard-head .title-input {
+    flex: 1; border: 0; background: transparent; outline: none;
+    font-weight: 700; font-size: 16px; color: var(--ink-1); padding: 4px 0;
+    min-width: 0;
+  }
+  .qcard-head .title-input:focus { box-shadow: 0 -1px 0 var(--blue-200) inset; }
+  .qcard-head .actions { display: flex; align-items: center; gap: 2px; }
+  .qcard-head .actions .icon-btn { width: 32px; height: 32px; color: var(--ink-3); }
+  .qcard-head .actions .icon-btn:hover { background: var(--bg); }
+
+  .qcard-body { padding: 18px 20px 16px; display: flex; flex-direction: column; gap: 16px; }
+
+  .sub-heading {
+    font-weight: 700; font-size: 15px; color: var(--ink-2); margin-top: -2px;
+  }
+  .sub-heading .n { color: var(--ink-1); margin-right: 4px; }
+
+  /* Form */
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  .field > .label { font-weight: 700; font-size: 14px; color: var(--ink-1); }
+  .field > .helper { font-size: 13px; color: var(--ink-4); }
+  .input, textarea.input {
+    width: 100%; padding: 10px 12px; border: 1px solid var(--line-strong);
+    border-radius: var(--radius-input); background: #fff; font-size: 14px;
+    line-height: 20px; color: var(--ink-1); outline: none;
+    resize: vertical;
+  }
+  textarea.input { min-height: 96px; }
+  .input:focus, textarea.input:focus { border-color: var(--blue-400); box-shadow: 0 0 0 3px rgba(84,115,255,0.15); }
+  .input::placeholder, textarea::placeholder { color: var(--ink-5); }
+  .helper-row {
+    display: flex; align-items: center; justify-content: flex-end;
+    margin-top: -4px;
+  }
+  .char-left { font-size: 13px; color: var(--ink-4); }
+
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    height: 36px; padding: 0 14px; border-radius: 8px; font-weight: 600;
+    font-size: 14px; color: var(--ink-1); background: #fff; border: 1px solid var(--line-strong);
+    cursor: pointer;
+  }
+  .btn:hover { background: #fafbfc; }
+  .btn.lg { height: 40px; padding: 0 16px; font-size: 15px; }
+  .btn.primary {
+    background: var(--blue-500); color: #fff; border-color: var(--blue-500);
+  }
+  .btn.primary:hover { background: var(--blue-700); }
+  .btn.ghost { border: 0; padding: 0 6px; background: transparent; color: var(--ink-3); }
+  .btn.ghost:hover { background: var(--bg); }
+  .btn svg { width: 14px; height: 14px; }
+
+  /* Toggle row */
+  .toggle-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 0; font-size: 14px; color: var(--ink-2);
+  }
+  .toggle-row .info { color: var(--ink-4); width: 16px; height: 16px; }
+  .switch {
+    position: relative; width: 36px; height: 20px; border-radius: 999px;
+    background: #cdd1d6; border: 0; padding: 0; cursor: pointer; flex-shrink: 0;
+    transition: background .15s ease;
+  }
+  .switch::after {
+    content: ""; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px;
+    background: #fff; border-radius: 50%; transition: left .15s ease;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.18);
+  }
+  .switch[aria-checked="true"] { background: var(--blue-500); }
+  .switch[aria-checked="true"]::after { left: 18px; }
+
+  /* Card divider section */
+  .qcard-section {
+    padding: 16px 20px; border-top: 1px solid var(--line);
+    display: flex; flex-direction: column; gap: 12px;
+  }
+  .qcard-section .h {
+    font-weight: 700; font-size: 14px; color: var(--ink-1);
+  }
+  .qcard-section .p { font-size: 13px; color: var(--ink-4); }
+
+  .accordion {
+    background: var(--bg); border-radius: 10px; padding: 10px 12px;
+    display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--ink-2);
+    cursor: pointer; border: 0; width: 100%; text-align: left;
+  }
+  .accordion .lamp { color: var(--ink-4); width: 14px; height: 14px; }
+  .accordion .grow { flex: 1; }
+  .accordion .caret { color: var(--ink-3); width: 12px; height: 12px; transition: transform .15s ease; }
+  .accordion[aria-expanded="true"] .caret { transform: rotate(180deg); }
+
+  .followup-foot {
+    display: flex; align-items: center; gap: 8px;
+  }
+  .followup-foot .help-mark {
+    width: 16px; height: 16px; color: var(--ink-4);
+  }
+  .add-logic {
+    margin-left: auto; display: inline-flex; align-items: center; gap: 6px;
+    color: var(--ink-3); font-weight: 500; background: transparent; border: 0; cursor: pointer;
+    font-size: 13px;
+  }
+  .add-logic:hover { color: var(--ink-1); }
+  .add-logic svg { width: 12px; height: 12px; }
+
+  /* Summary */
+  .summary { display: flex; flex-direction: column; gap: 12px; position: sticky; top: 24px; }
+  .summary-card {
+    background: #fff; border: 1px solid var(--line); border-radius: var(--radius-card);
+    padding: 16px; display: flex; flex-direction: column; gap: 12px;
+  }
+  .summary-title { font-weight: 700; font-size: 16px; color: var(--ink-1); }
+  .summary-row { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--ink-1); }
+  .summary-row svg { width: 16px; height: 16px; color: var(--ink-3); flex-shrink: 0; }
+  .summary-row .col { display: flex; flex-direction: column; }
+  .summary-row .sub { font-size: 12px; color: var(--ink-4); }
+  .summary-divider { border: 0; border-top: 1px solid var(--line); margin: 4px 0; }
+  .settings-row {
+    display: flex; align-items: center; justify-content: space-between;
+    font-weight: 700; font-size: 14px; color: var(--ink-1);
+  }
+  .settings-row .btn { height: 28px; padding: 0 10px; font-size: 13px; font-weight: 600; }
+
+  /* ────────── COACH: sub-nav toggle ────────── */
+  .mode-toggle {
+    display: inline-flex; align-items: center; gap: 0;
+    background: var(--bg); border: 1px solid var(--line-strong);
+    border-radius: 8px; padding: 2px;
+  }
+  .mode-toggle button {
+    height: 26px; padding: 0 10px; border: 0; border-radius: 6px; background: transparent;
+    font-size: 13px; color: var(--ink-3); cursor: pointer;
+  }
+  .mode-toggle button[aria-pressed="true"] { background: #fff; color: var(--ink-1); box-shadow: 0 1px 2px rgba(0,0,0,0.08); font-weight: 600; }
+  .mode-toggle .dot { width: 6px; height: 6px; border-radius: 50%; margin-right: 6px; vertical-align: middle; display: inline-block; }
+  .mode-toggle .dot.panel { background: var(--blue-500); }
+  .mode-toggle .dot.inline { background: var(--purple-500); }
+
+  /* ────────── COACH: FAB ────────── */
+  .coach-fab {
+    position: fixed; bottom: 24px; right: 24px; z-index: 60;
+    width: 52px; height: 52px; border-radius: 50%; border: 0; cursor: pointer;
+    background: linear-gradient(135deg, #5473ff 0%, #8b2ca4 100%);
+    color: #fff; display: inline-flex; align-items: center; justify-content: center;
+    box-shadow: 0 8px 24px rgba(49, 92, 253, 0.35), 0 2px 8px rgba(0,0,0,0.08);
+    transition: transform .15s ease, box-shadow .15s ease, opacity .2s ease;
+  }
+  .coach-fab:hover { transform: translateY(-1px); }
+  .coach-fab svg { width: 22px; height: 22px; }
+  .coach-fab .badge {
+    position: absolute; top: -2px; right: -2px; min-width: 20px; height: 20px;
+    border-radius: 999px; background: #d33b3b; color: #fff; font-size: 11px;
+    font-weight: 700; line-height: 20px; padding: 0 6px; box-shadow: 0 0 0 2px #fff;
+    display: none;
+  }
+  .coach-fab[data-count]:not([data-count="0"]) .badge { display: inline-block; }
+  .coach-fab.pulse::after {
+    content: ""; position: absolute; inset: -4px; border-radius: 50%;
+    border: 3px solid var(--blue-400); animation: coachPulse 1.4s ease-out infinite;
+  }
+  @keyframes coachPulse {
+    0% { transform: scale(0.95); opacity: 0.8; }
+    100% { transform: scale(1.4); opacity: 0; }
+  }
+  body.coach-open .coach-fab { opacity: 0; pointer-events: none; transform: scale(0.8); }
+  body.coach-mode-inline .coach-fab { display: none; }
+
+  /* ────────── COACH: panel ────────── */
+  .coach-panel {
+    position: fixed; top: 0; right: 0; bottom: 0; width: 400px; z-index: 55;
+    background: #fff; border-left: 1px solid var(--line);
+    box-shadow: -12px 0 32px rgba(0,0,0,0.06);
+    transform: translateX(100%); transition: transform .3s cubic-bezier(.2,.8,.2,1);
+    display: flex; flex-direction: column;
+  }
+  body.coach-open .coach-panel { transform: translateX(0); }
+  body.coach-open .body-row { padding-right: 424px; }
+
+  .coach-header {
+    display: flex; align-items: center; gap: 12px; padding: 14px 18px;
+    border-bottom: 1px solid var(--line);
+    background: linear-gradient(180deg, #f5f7fe 0%, #fff 100%);
+  }
+  .coach-avatar {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: linear-gradient(135deg, #5473ff 0%, #8b2ca4 100%);
+    color: #fff; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .coach-avatar svg { width: 18px; height: 18px; }
+  .coach-header .who { display: flex; flex-direction: column; gap: 1px; flex: 1; }
+  .coach-header .who .name { font-weight: 700; font-size: 15px; color: var(--ink-1); }
+  .coach-header .who .sub { font-size: 12px; color: var(--ink-4); }
+  .coach-header .close { background: transparent; border: 0; width: 28px; height: 28px; border-radius: 8px; color: var(--ink-3); display: inline-flex; align-items: center; justify-content: center; }
+  .coach-header .close:hover { background: var(--bg); }
+  .coach-header .demo-toggle {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 11px; font-weight: 600; letter-spacing: 0.02em;
+    text-transform: uppercase; color: var(--ink-4);
+    user-select: none; cursor: pointer; margin-right: 2px;
+  }
+  .coach-header .demo-toggle input { position: absolute; opacity: 0; pointer-events: none; }
+  .coach-header .demo-toggle .track {
+    position: relative; width: 26px; height: 14px;
+    border-radius: 999px; background: var(--line-strong);
+    transition: background-color 120ms;
+  }
+  .coach-header .demo-toggle .thumb {
+    position: absolute; top: 1px; left: 1px;
+    width: 12px; height: 12px; border-radius: 50%;
+    background: var(--white); box-shadow: 0 1px 2px rgba(0,0,0,0.18);
+    transition: transform 120ms;
+  }
+  .coach-header .demo-toggle input:checked + .track { background: var(--blue-500); }
+  .coach-header .demo-toggle input:checked + .track .thumb { transform: translateX(12px); }
+  .coach-header .demo-toggle input:focus-visible + .track { box-shadow: 0 0 0 3px rgba(48,92,253,0.25); }
+
+  .coach-status {
+    padding: 10px 18px; border-bottom: 1px solid var(--line);
+    display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--ink-3);
+    background: #fff;
+  }
+  .coach-status .pill {
+    display: inline-flex; align-items: center; gap: 6px; padding: 2px 10px;
+    border-radius: 999px; font-weight: 600; font-size: 12px;
+  }
+  .coach-status .pill.warn { background: var(--status-warn-bg); color: var(--status-warn-fg); }
+  .coach-status .pill.ok { background: var(--status-ok-bg); color: var(--status-ok-fg); }
+  .coach-status .pill svg { width: 12px; height: 12px; }
+  .coach-status .right { margin-left: auto; color: var(--ink-5); }
+
+  .coach-feed {
+    flex: 1; overflow-y: auto; padding: 14px 16px;
+    display: flex; flex-direction: column; gap: 12px; background: var(--bg);
+  }
+  .msg { display: flex; gap: 8px; max-width: 100%; }
+  .msg.bot { align-self: flex-start; }
+  .msg .mini-avatar {
+    width: 22px; height: 22px; border-radius: 50%; flex-shrink: 0;
+    background: linear-gradient(135deg, #5473ff 0%, #8b2ca4 100%);
+    display: inline-flex; align-items: center; justify-content: center; color: #fff;
+  }
+  .msg .mini-avatar svg { width: 12px; height: 12px; }
+  .msg .bubble {
+    background: #fff; border: 1px solid var(--line); border-radius: 12px;
+    padding: 10px 12px; font-size: 13px; line-height: 18px; color: var(--ink-1);
+  }
+  .msg .grow { flex: 1; min-width: 0; }
+
+  /* Suggestion card */
+  .suggestion {
+    border: 1px solid var(--blue-100); background: #fff; border-radius: 12px;
+    padding: 12px 14px; display: flex; flex-direction: column; gap: 10px;
+  }
+  .suggestion .head { display: flex; align-items: flex-start; gap: 8px; }
+  .suggestion .icon {
+    width: 22px; height: 22px; border-radius: 6px; flex-shrink: 0;
+    display: inline-flex; align-items: center; justify-content: center;
+    background: var(--status-warn-bg); color: var(--status-warn-fg);
+  }
+  .suggestion .icon svg { width: 12px; height: 12px; }
+  .suggestion .title { font-weight: 700; font-size: 14px; color: var(--ink-1); }
+  .suggestion .target { font-size: 12px; color: var(--ink-4); margin-top: 1px; }
+  .suggestion .why { font-size: 13px; line-height: 18px; color: var(--ink-2); }
+  .suggestion .why .hits { background: #fff0c0; padding: 0 4px; border-radius: 3px; font-weight: 600; color: #5a3700; }
+  .suggestion .preview {
+    background: var(--blue-25); border: 1px solid var(--blue-100); border-radius: 8px;
+    padding: 10px 12px; font-size: 13px; line-height: 18px; color: var(--ink-1);
+    font-style: italic; position: relative; white-space: pre-wrap;
+  }
+  .suggestion .preview::before {
+    content: "Try"; display: block; font-size: 10px; font-weight: 700; letter-spacing: 0.5px;
+    color: var(--blue-500); text-transform: uppercase; font-style: normal; margin-bottom: 4px;
+  }
+  .suggestion .actions { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+  .suggestion .actions .btn { height: 30px; padding: 0 10px; font-size: 13px; }
+  .suggestion .why-link {
+    font-size: 12px; color: var(--blue-500); background: transparent; border: 0;
+    cursor: pointer; padding: 0; margin-left: auto;
+  }
+  .suggestion .why-link:hover { text-decoration: underline; }
+  .suggestion .playbook {
+    font-size: 12px; color: var(--ink-4); line-height: 16px;
+    border-left: 2px solid var(--blue-200); padding: 4px 0 4px 8px;
+    background: #fafbff; border-radius: 0 4px 4px 0; display: none;
+  }
+  .suggestion[data-expanded="true"] .playbook { display: block; }
+  .suggestion[data-applied="true"] { border-color: #b6dec3; background: #f3faf5; }
+  .suggestion[data-applied="true"] .preview,
+  .suggestion[data-applied="true"] .actions,
+  .suggestion[data-applied="true"] .why-link,
+  .suggestion[data-applied="true"] .playbook { display: none; }
+  .suggestion[data-applied="true"] .applied-tag {
+    display: inline-flex; align-items: center; gap: 6px; font-size: 13px;
+    color: var(--status-ok-fg); font-weight: 600;
+  }
+  .suggestion .applied-tag { display: none; }
+
+  .coach-empty {
+    flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    text-align: center; padding: 24px; color: var(--ink-3); gap: 10px;
+  }
+  .coach-empty .big-avatar {
+    width: 48px; height: 48px; border-radius: 50%;
+    background: linear-gradient(135deg, #5473ff 0%, #8b2ca4 100%);
+    display: inline-flex; align-items: center; justify-content: center; color: #fff;
+  }
+  .coach-empty .big-avatar svg { width: 24px; height: 24px; }
+  .coach-empty .h { font-weight: 700; font-size: 15px; color: var(--ink-1); }
+  .coach-empty .p { font-size: 13px; line-height: 18px; max-width: 280px; }
+
+  .coach-composer {
+    border-top: 1px solid var(--line); padding: 10px 14px; background: #fff;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .coach-composer input {
+    flex: 1; height: 34px; border: 1px solid var(--line-strong); border-radius: 999px;
+    padding: 0 12px; font: inherit; font-size: 13px; color: var(--ink-1); outline: none;
+    background: var(--bg);
+  }
+  .coach-composer input:focus { background: #fff; border-color: var(--blue-400); }
+  .coach-composer .send {
+    width: 34px; height: 34px; border-radius: 50%; border: 0;
+    background: var(--blue-500); color: #fff; display: inline-flex;
+    align-items: center; justify-content: center; cursor: pointer;
+  }
+  .coach-composer .send svg { width: 14px; height: 14px; }
+
+  /* Inline suggestion area (rendered under the textarea in inline mode) */
+  .inline-suggestions {
+    display: flex; flex-direction: column; gap: 10px; margin-top: 8px;
+  }
+  body.coach-mode-inline .panel-only { display: none !important; }
+  body.coach-mode-panel .inline-only { display: none !important; }
+
+  /* Demo helper pill */
+  .demo-pill {
+    background: linear-gradient(135deg, rgba(84,115,255,0.08) 0%, rgba(139,44,164,0.08) 100%);
+    border: 1px dashed var(--blue-200); color: var(--blue-900);
+    height: 28px; padding: 0 10px; border-radius: 999px; font-size: 12px;
+    cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
+  }
+  .demo-pill:hover { background: var(--blue-25); }
+  .demo-pill svg { width: 12px; height: 12px; color: var(--blue-500); }
+
+  /* Has-issues banner on card header */
+  .qcard.has-issues .qcard-head {
+    background: linear-gradient(180deg, #fff8ec 0%, #fff 100%);
+  }
+
+  /* Flash on apply */
+  @keyframes flashApply {
+    0% { background-color: var(--blue-25); }
+    100% { background-color: #fff; }
+  }
+  .input.just-applied, textarea.input.just-applied { animation: flashApply 1.2s ease-out; }
+
+  /* JS error banner */
+  #js-error {
+    display: none; position: fixed; top: 8px; left: 50%; transform: translateX(-50%);
+    z-index: 9999; background: #fde9e9; color: #7a1818; padding: 10px 14px;
+    border: 1px solid #f3c4c4; border-radius: 8px; max-width: 80vw;
+    font: 12px/1.4 ui-monospace, Menlo, monospace; box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    white-space: pre-wrap;
+  }
+
+  /* Severity treatment for the new mandatory/recommended scheme */
+  .suggestion[data-severity="mandatory"] .icon { background: var(--status-err-bg); color: var(--status-err-fg); }
+  .suggestion[data-severity="recommended"] .icon { background: var(--status-warn-bg); color: var(--status-warn-fg); }
+
+  .sev-badge {
+    display: inline-block; font-size: 10px; font-weight: 700; letter-spacing: 0.4px;
+    text-transform: uppercase; padding: 1px 6px; border-radius: 4px; margin-left: 6px;
+    vertical-align: 2px;
+  }
+  .sev-badge.sev-mandatory { background: var(--status-err-bg); color: var(--status-err-fg); }
+  .sev-badge.sev-recommended { background: var(--status-warn-bg); color: var(--status-warn-fg); }
+
+  /* Subtle highlight on cards with mandatory issues */
+  .qcard.has-issues .qcard-head { background: linear-gradient(180deg, #fff4f4 0%, #fff 100%); }
+</style>
+</head>
+<body>
+
+<script type="text/plain" id="coach-system-prompt">
+# UX Research Coach — Evaluator System Prompt
+
+You are an expert UX research coach who reviews UX test plans drafted by product teams at UserTesting. Your job is to identify issues in the user's draft against established best practices and provide clear, actionable feedback with suggested rewrites.
+
+## Your responsibilities
+
+- Read the user's current test state and identify issues at the **field level** (single task or question) and at the **test level** (structure, sequencing, fatigue, redundancy).
+- Distinguish **mandatory** violations (a documented best practice is broken) from **recommended** improvements (the draft could be sharper but isn't wrong).
+- Explain *why* each issue matters in 1–3 sentences. Quote specific phrases from the user's draft so they know you actually read it.
+- Offer at least one specific suggested rewrite per issue, grounded in the user's apparent intent — don't change topic, scenario, or domain. If you can't infer intent, say so and ask the user to clarify rather than guessing.
+- Be conservative. If a field looks fine, say nothing about it. Don't manufacture issues to look thorough.
+- If the user has only entered a title or has empty fields, return no issues for those cards.
+
+## Tone
+
+You're a helpful peer reviewer, not a grader. Direct but warm. Skip the lecture — assume the user is capable and busy.
+
+## Input format
+
+You will receive a JSON object describing the current state of the test:
+
+```json
+{
+  "study_type": "survey" | "interaction_test" | "tol",
+  "cards": [
+    {
+      "card_id": "card-1",
+      "kind": "task" | "question",
+      "task_type": "url" | "figma" | "written" | "verbal" | "ratingscale" | "multiplechoice" | "matrix" | "nps" | "ranking" | "image" | "instructions",
+      "title": "Navigation task",
+      "content": "Click the 'Sign up' button..."
+    }
+  ]
+}
+```
+
+Cards appear in the order the user placed them.
+
+## Output format
+
+You MUST call the `submit_review` tool with this schema:
+
+```json
+{
+  "issues": [
+    {
+      "card_id": "card-1",
+      "severity": "mandatory" | "recommended",
+      "category": "loaded_language" | "double_barreled" | "leading" | "missing_scenario" | "missing_endpoint" | "no_think_aloud" | "gave_hints" | "vague_reference" | "too_long" | "wrong_punctuation" | "missing_follow_up" | "nps_placement" | "back_to_back_url" | "scale_inconsistency" | "fatigue_risk" | "redundancy" | "image_outside_pagegroup" | "other",
+      "title": "Short label, 3-6 words",
+      "why": "1-3 sentence explanation. Quote specific phrases from the user's draft.",
+      "highlight": ["exact phrases from the user's content to highlight verbatim"],
+      "rewrites": [
+        {
+          "label": "Apply suggestion",
+          "text": "The suggested rewrite. Complete replacement for the field's content."
+        }
+      ],
+      "affected_card_ids": ["card-2"]
+    }
+  ]
+}
+```
+
+**Rules for the output:**
+
+- `card_id`: the specific card the issue belongs to. For test-level issues that don't map to one card, set `card_id` to `null` and list every involved card in `affected_card_ids`.
+- `rewrites`: include at least one when possible. For ambiguous cases (e.g., a leading question that could become either an open or a rating question), include multiple labeled options.
+- `highlight`: phrases must appear *verbatim* in the input so the UI can underline them.
+- `affected_card_ids`: only populate for test-level issues; otherwise omit.
+- If nothing to flag, return `{"issues": []}`.
+
+---
+
+## Best practices — General
+
+### Mandatory
+
+- **Content scope.** Only include content directly relevant to the stated goals. Don't introduce new topics, products, or features.
+- **Plain language.** Avoid acronyms, internal jargon, and UX terms (e.g. "call to action," "navigation flow").
+- **Punctuation.** Questions end with `?`. Statements end with `.`.
+- **Length.** Tasks and questions are 500 characters or less.
+- **No leading questions.** Let the scale or answer options provide direction. (Poor: "How much did you like the preferred layout?")
+- **No double-barreled questions.** Each question asks about one concept. (Poor: "How easy and useful was the information?")
+- **No loaded or biased phrasing.** (Poor: "What do you like most about our improved new design?")
+- **Self-contained questions.** No vague references to earlier questions. Rephrase to stand alone.
+- **Actionable tasks.** Tasks include specific, observable actions (Find, Add, Book, Open, Select).
+
+### Recommended
+
+- Address the participant as "you."
+- Plain conversational English.
+- Start tasks with an action verb.
+- Short sentences, concise options.
+- Flexible timing — "Take a short moment…" not "Spend exactly 30 seconds…"
+
+---
+
+## Best practices — By study type
+
+### Survey
+
+**Mandatory**
+- Neutral, non-leading wording.
+- No overlapping questions measuring the same concept.
+- Consistent scale types (5- or 7-point Likert) within the same survey.
+- Clearly separate attitudinal vs. behavioral questions.
+- Manageable length to reduce fatigue and drop-off.
+
+**Recommended**
+- Easier closed-ended questions first, deeper written ones later.
+- Matrix questions used sparingly.
+- At least one written question for qualitative context.
+- Group related questions into thematic sections.
+
+### Interaction test
+
+**Mandatory**
+- Clear task success criteria (specific pages, states, or actions).
+- Consistent blueprint structures across studies.
+- Tasks narrowly scoped to a single flow or objective.
+- Don't rely on long written responses; prioritize actionable tasks.
+- After a RatingScale or Ranking question, include a written follow-up that briefly explains the score or ordering.
+
+**Recommended**
+- Pair high-value tasks with a brief difficulty rating.
+- Keep total number of tasks small.
+- Add a final attitudinal metric (NPS or satisfaction) when comparing versions.
+- Reserve a short written question near the end for additional thoughts.
+
+### TOL (Think-out-loud)
+
+**Mandatory**
+- Tasks explicitly encourage users to verbalize thoughts.
+- No leading instructions.
+- Warm-up prompt to get participants comfortable speaking aloud.
+- Tasks focus on comprehension, expectations, or emotional reactions.
+- Include a "think out loud" reminder in each task.
+- Verbal follow-ups preferred over written ones (except after NPS).
+
+**Recommended**
+- Keep studies short (~15 minutes).
+- Pair tasks with targeted follow-ups probing *why*.
+- Incorporate prototype or navigation tasks to ground commentary in action.
+- After RatingScale or Ranking, prefer a verbal follow-up for reasoning.
+
+---
+
+## Best practices — By task type
+
+### instructions
+Mandatory: under 500 characters; neutral, non-leading language; only the context needed.
+Recommended: realistic scenarios without storytelling that biases responses.
+
+### written
+Mandatory: one theme per question; after a RatingScale, the written question explains only that rating; guide expected length.
+Recommended: reflective prompts at the end of flows.
+
+### verbal
+Mandatory: each verbal question probes a unique angle; after a RatingScale, the verbal follow-up explains only that rating.
+Recommended: prompts that elicit emotional or intuitive reactions.
+
+### ratingscale
+Mandatory: anchors semantically distinct (avoid "very" vs. "extremely"); one concept per question (no "clear and helpful"); consistent 5- or 7-point scale within a study; always followed by a Written or Verbal explaining that rating; low-to-high progression.
+
+### multiplechoice
+Mandatory: explicitly specify single vs. multi-select; no scales/rankings inside; mutually exclusive and unambiguous options; "Other" or "None of the above" where appropriate.
+Recommended: ≤8 options.
+
+### matrix
+Mandatory: same scale across items (5-point); items parallel in structure and scope; concise wording.
+Recommended: 4–8 items max.
+
+### nps
+Mandatory: canonical NPS wording; always followed by a Written task that explains the rating; 0–10 scale only.
+Recommended: use sparingly; never place early in a study.
+
+### ranking
+Mandatory: 5–10 items; ranking direction stated explicitly; no overlapping items.
+Recommended: randomized item order.
+
+### url
+Mandatory: under 500 characters; concise, action-oriented instructions; one navigation path per task; never two URL/navigation tasks back-to-back; include short scenario-based context where possible.
+
+### figma
+Mandatory: under 500 characters; concise, action-oriented instructions; scenario-based context where possible; one major flow per task.
+
+### image
+Mandatory: only valid inside a PageGroup with other related tasks; under 500 characters; enough context that the participant knows what they're viewing.
+
+---
+
+## Structural rules (cross-card)
+
+Use these to flag test-level issues with `card_id: null` and populate `affected_card_ids`:
+
+- **RatingScale must be followed by Written or Verbal explaining only that rating.** → `missing_follow_up`, mandatory.
+- **NPS must be followed by Written explaining the score.** → `missing_follow_up`, mandatory.
+- **NPS placed in the first third of the test.** → `nps_placement`, recommended.
+- **Two URL or navigation tasks back-to-back.** → `back_to_back_url`, mandatory for interaction_test.
+- **Image task standing alone, not in a PageGroup.** → `image_outside_pagegroup`, mandatory.
+- **Inconsistent scale lengths across RatingScale or Matrix items.** → `scale_inconsistency`, mandatory.
+- **For TOL, written follow-ups where verbal would be more appropriate** (except after NPS). → `other`, recommended.
+- **Study length likely to cause fatigue** (rough thresholds: TOL >15 cards, survey >25, interaction_test >10 tasks). → `fatigue_risk`, recommended.
+- **Redundant questions measuring the same concept.** → `redundancy`, mandatory for survey.
+
+---
+
+## Final reminder
+
+Return `{"issues": []}` when there's nothing to flag. Quality of feedback matters far more than quantity.
+</script>
+
+<div id="js-error"></div>
+<script>
+  window.addEventListener('error', (e) => {
+    const box = document.getElementById('js-error');
+    if (!box) return;
+    box.style.display = 'block';
+    box.textContent = `JS error: ${e.message}\nat ${e.filename || '(file)'}:${e.lineno || '?'}:${e.colno || '?'}`;
+  });
+</script>
+
+<!-- ──────── Top nav ──────── -->
+<header class="topnav">
+  <div class="left">
+    <button class="icon-btn" aria-label="Menu">
+      <svg viewBox="0 0 18 18" fill="none"><path d="M3 5h12M3 9h12M3 13h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+    </button>
+    <span class="logomark">U</span>
+    <button class="test-title" type="button">
+      <span class="name" id="test-name">Untitled test</span>
+      <svg viewBox="0 0 12 12" fill="none"><path d="M3 4l3 3 3-3" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>
+    </button>
+    <span class="saved" id="saved-indicator">
+      <span class="check"><svg viewBox="0 0 12 12" fill="none"><path d="M3 6l2 2 4-4" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg></span>
+      Saved
+    </span>
+  </div>
+
+  <nav class="tabs" role="tablist">
+    <button class="tab" role="tab" aria-selected="true">Test builder</button>
+    <button class="tab" role="tab" aria-selected="false">Audience</button>
+    <button class="tab" role="tab" aria-selected="false">Review</button>
+    <span class="vbar"></span>
+    <button class="tab" role="tab" aria-disabled="true">Monitor</button>
+    <button class="tab" role="tab" aria-disabled="true">Results</button>
+  </nav>
+
+  <div class="right">
+    <div class="mode-toggle" role="tablist" aria-label="Coach mode">
+      <button id="mode-panel" aria-pressed="true"><span class="dot panel"></span>Panel</button>
+      <button id="mode-inline" aria-pressed="false"><span class="dot inline"></span>Inline</button>
+    </div>
+    <div class="search">
+      <svg viewBox="0 0 16 16" fill="none"><circle cx="7" cy="7" r="5" stroke="currentColor" stroke-width="1.5"/><path d="m11 11 3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      <input type="search" placeholder="Search" />
+    </div>
+    <button class="notif" aria-label="Notifications">2</button>
+    <button class="help" aria-label="Help">?</button>
+    <button class="avatar" aria-label="Profile">SS</button>
+    <span class="draft-tag">Draft</span>
+  </div>
+</header>
+
+<!-- ──────── Body row ──────── -->
+<div class="body-row">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="add-btn-wrap">
+      <button class="add-main" id="add-main">
+        <svg viewBox="0 0 14 14" fill="none"><path d="M7 2v10M2 7h10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+        Add
+      </button>
+      <div class="add-menu" id="add-menu" role="menu">
+        <button data-add-kind="task">
+          <span class="pill task"><svg viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="4" stroke="currentColor" stroke-width="1.4" fill="none"/><circle cx="6" cy="6" r="1.2" fill="currentColor"/></svg></span>
+          <span class="text">Task<span class="sub">Send participants to a URL</span></span>
+        </button>
+        <button data-add-kind="question">
+          <span class="pill question"><svg viewBox="0 0 12 12" fill="none"><path d="M4 4.5a2 2 0 1 1 2.5 1.9V8" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round"/><circle cx="6.5" cy="10" r="0.7" fill="currentColor"/></svg></span>
+          <span class="text">Question<span class="sub">Ask a written or rating question</span></span>
+        </button>
+      </div>
+    </div>
+    <div class="nav-list" id="nav-list">
+      <!-- Default Navigation task entry -->
+      <button class="nav-item" data-target="card-1" aria-current="true">
+        <span class="icon task"><svg viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="4" stroke="currentColor" stroke-width="1.4" fill="none"/><circle cx="6" cy="6" r="1.2" fill="currentColor"/></svg></span>
+        <span class="label">Navigation task</span>
+        <span class="drag"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="5" cy="4" r="1" fill="currentColor"/><circle cx="9" cy="4" r="1" fill="currentColor"/><circle cx="5" cy="7" r="1" fill="currentColor"/><circle cx="9" cy="7" r="1" fill="currentColor"/><circle cx="5" cy="10" r="1" fill="currentColor"/><circle cx="9" cy="10" r="1" fill="currentColor"/></svg></span>
+      </button>
+      <button class="nav-sub" data-target="card-1-step-1">1. Navigation task instructions</button>
+    </div>
+  </aside>
+
+  <!-- Canvas -->
+  <section class="canvas" id="canvas">
+    <!-- Default Navigation task card -->
+    <article class="qcard is-selected" id="card-1" data-card data-kind="task">
+      <header class="qcard-head">
+        <span class="pict task"><svg viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="4" stroke="currentColor" stroke-width="1.4" fill="none"/><circle cx="6" cy="6" r="1.2" fill="currentColor"/></svg></span>
+        <input class="title-input" type="text" value="Navigation task" />
+        <div class="actions">
+          <button class="icon-btn" aria-label="Duplicate"><svg viewBox="0 0 18 18" fill="none"><rect x="4" y="4" width="9" height="11" rx="1.5" stroke="currentColor" stroke-width="1.5"/><rect x="7" y="7" width="8" height="8" rx="1.5" fill="#fff" stroke="currentColor" stroke-width="1.5"/></svg></button>
+          <button class="icon-btn" aria-label="Delete"><svg viewBox="0 0 18 18" fill="none"><path d="M3 5h12M7 5V3.5A1.5 1.5 0 0 1 8.5 2h1A1.5 1.5 0 0 1 11 3.5V5M5 5l1 10h6l1-10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button>
+          <button class="icon-btn" aria-label="Move up"><svg viewBox="0 0 18 18" fill="none"><path d="M5 11l4-4 4 4" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg></button>
+          <button class="icon-btn" aria-label="Move down"><svg viewBox="0 0 18 18" fill="none"><path d="M5 7l4 4 4-4" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg></button>
+        </div>
+      </header>
+
+      <div class="qcard-body">
+        <div class="sub-heading"><span class="n">1.</span>Navigation task instructions</div>
+
+        <div class="field">
+          <label class="label">Starting URL</label>
+          <input class="input" type="url" placeholder="Enter a URL" />
+          <span class="helper">Verify that your URL works by opening it in a private browser</span>
+        </div>
+
+        <div class="field">
+          <label class="label">Task instructions</label>
+          <textarea class="input" data-coach-field="task" placeholder="Add your instructions"></textarea>
+          <div class="helper-row">
+            <span class="char-left" data-counter>Characters left: 1000</span>
+          </div>
+          <div class="inline-suggestions inline-only" data-inline-target></div>
+        </div>
+
+        <div>
+          <button class="btn"><svg viewBox="0 0 14 14" fill="none"><path d="M7 2v10M2 7h10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg> Add success URL</button>
+        </div>
+
+        <div class="toggle-row">
+          Blur recording to protect privacy
+          <svg class="info" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.3"/><path d="M8 7v4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><circle cx="8" cy="5" r="0.7" fill="currentColor"/></svg>
+          <span style="margin-left:auto"></span>
+          <button class="switch" role="switch" aria-checked="false" aria-label="Blur recording"></button>
+        </div>
+      </div>
+
+      <div class="qcard-section">
+        <div class="h">Follow-ups</div>
+        <div class="p">Your website or prototype will be visible during these questions.</div>
+        <button class="accordion" aria-expanded="false">
+          <svg class="lamp" viewBox="0 0 14 14" fill="none"><path d="M7 1.5v2M2 7h2M10 7h2M3 3l1.5 1.5M9.5 4.5 11 3M7 6a3 3 0 0 0-1.5 5.5V13h3v-1.5A3 3 0 0 0 7 6z" stroke="currentColor" stroke-width="1.3" fill="none" stroke-linecap="round"/></svg>
+          <span class="grow">Popular follow-up questions</span>
+          <svg class="caret" viewBox="0 0 12 12" fill="none"><path d="M3 4.5l3 3 3-3" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>
+        </button>
+        <div class="followup-foot">
+          <button class="btn">Add follow-up question
+            <svg viewBox="0 0 12 12" fill="none"><path d="M3 4.5l3 3 3-3" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>
+          </button>
+          <svg class="help-mark" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.3"/><path d="M6.5 6a1.5 1.5 0 1 1 2 1.4V9" stroke="currentColor" stroke-width="1.3" fill="none" stroke-linecap="round"/><circle cx="8.2" cy="11" r="0.7" fill="currentColor"/></svg>
+          <button class="add-logic">
+            <svg viewBox="0 0 12 12" fill="none"><path d="M2 2v3h3M10 10V7H7M2 5l4 4M10 2 6 6" stroke="currentColor" stroke-width="1.3" fill="none" stroke-linecap="round"/></svg>
+            Add logic
+          </button>
+        </div>
+      </div>
+    </article>
+  </section>
+
+  <!-- Summary -->
+  <aside class="summary">
+    <div class="summary-card">
+      <h2 class="summary-title">Summary</h2>
+      <div class="summary-row">
+        <svg viewBox="0 0 16 16" fill="none"><rect x="2" y="2.5" width="12" height="11" rx="1.5" stroke="currentColor" stroke-width="1.3"/><path d="M5 6h6M5 8.5h4M5 11h5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+        <span>Tasks &amp; questions: <strong id="summary-count">1</strong></span>
+      </div>
+      <hr class="summary-divider" />
+      <div class="settings-row">
+        <span>Settings</span>
+        <button class="btn">Edit</button>
+      </div>
+      <div class="summary-row">
+        <svg viewBox="0 0 16 16" fill="none"><path d="M3 6v4M6 4v8M9 5v6M12 7v2M14.5 6v4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        <span class="col"><span><strong>Think-out-loud</strong></span><span class="sub">Screen &amp; audio</span></span>
+      </div>
+      <div class="summary-row">
+        <svg viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="10" height="7" rx="1.2" stroke="currentColor" stroke-width="1.3"/><rect x="11" y="5" width="3" height="8" rx="0.8" stroke="currentColor" stroke-width="1.3"/></svg>
+        <span>Device: <strong>Computer</strong></span>
+      </div>
+      <div class="summary-row">
+        <svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.3"/><path d="M2 8h12M8 2c2 2 2 10 0 12M8 2c-2 2-2 10 0 12" stroke="currentColor" stroke-width="1.3" fill="none"/></svg>
+        <span>Language: <strong>English</strong></span>
+      </div>
+    </div>
+
+    <button class="btn lg" style="justify-content:center;">
+      Preview
+      <svg viewBox="0 0 14 14" fill="none"><path d="M5 3h6v6M11 3 5 9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" fill="none"/></svg>
+    </button>
+    <button class="btn primary lg" style="justify-content:center;">
+      Add audience
+      <svg viewBox="0 0 14 14" fill="none"><path d="M5 3l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" fill="none"/></svg>
+    </button>
+  </aside>
+
+</div>
+
+<!-- ──────── Coach FAB (panel mode) ──────── -->
+<button class="coach-fab panel-only" id="coach-fab" data-count="0" aria-label="Open test coach">
+  <svg viewBox="0 0 24 24" fill="none">
+    <path d="M12 3l1.6 4.4L18 9l-4.4 1.6L12 15l-1.6-4.4L6 9l4.4-1.6L12 3z" fill="currentColor"/>
+    <path d="M19 14l.7 1.8L21.5 16.5l-1.8.7L19 19l-.7-1.8L16.5 16.5l1.8-.7L19 14z" fill="currentColor" opacity="0.7"/>
+  </svg>
+  <span class="badge" id="coach-badge">0</span>
+</button>
+
+<!-- ──────── Coach panel (panel mode) ──────── -->
+<aside class="coach-panel panel-only" id="coach-panel" aria-hidden="true">
+  <header class="coach-header">
+    <span class="coach-avatar"><svg viewBox="0 0 24 24" fill="none"><path d="M12 3l1.6 4.4L18 9l-4.4 1.6L12 15l-1.6-4.4L6 9l4.4-1.6L12 3z" fill="currentColor"/></svg></span>
+    <div class="who">
+      <span class="name">Test coach</span>
+      <span class="sub">Reviews tasks &amp; questions as you write</span>
+    </div>
+    <label class="demo-toggle" title="The coach cycles through four scripted reviews regardless of input: loaded language → missing scenario → structural follow-up → clean run">
+      <input type="checkbox" id="demo-toggle">
+      <span class="track"><span class="thumb"></span></span>
+      <span>Demo</span>
+    </label>
+    <button class="close" id="coach-close" aria-label="Close panel">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+    </button>
+  </header>
+  <div class="coach-status" id="coach-status">
+    <span class="pill ok"><svg viewBox="0 0 12 12" fill="none"><path d="M2.5 6l2.5 2.5 4.5-5" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg>Looks good so far</span>
+    <span class="right">Grounded in UT playbook</span>
+  </div>
+  <div class="coach-feed" id="coach-feed">
+    <div class="coach-empty" id="coach-empty">
+      <span class="big-avatar"><svg viewBox="0 0 24 24" fill="none"><path d="M12 3l1.6 4.4L18 9l-4.4 1.6L12 15l-1.6-4.4L6 9l4.4-1.6L12 3z" fill="currentColor"/></svg></span>
+      <div class="h">Hi — I'm your test coach</div>
+      <div class="p">Write a task or question and I'll flag leading language, missing context, and overloaded instructions, with rewrites grounded in UT's research playbook.</div>
+    </div>
+  </div>
+  <div class="coach-composer">
+    <input type="text" placeholder="Ask me anything — e.g. 'Is my scenario clear?'" />
+    <button class="send" aria-label="Send"><svg viewBox="0 0 16 16" fill="none"><path d="M2 8l12-5-3 12-3-5-6-2z" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linejoin="round"/></svg></button>
+  </div>
+</aside>
+
+<script>
+  // ─────────────────────────────────────────────────────
+  // BASE PAGE INTERACTIONS
+  // ─────────────────────────────────────────────────────
+
+  // Saved indicator: simulate autosave on any input
+  const savedEl = document.getElementById('saved-indicator');
+  let savedTimer;
+  document.addEventListener('input', () => {
+    savedEl.innerHTML = '<span class="check"><svg viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="3" stroke="currentColor" stroke-width="1.5" fill="none"/></svg></span> Saving…';
+    clearTimeout(savedTimer);
+    savedTimer = setTimeout(() => {
+      savedEl.innerHTML = '<span class="check"><svg viewBox="0 0 12 12" fill="none"><path d="M3 6l2 2 4-4" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg></span> Saved';
+    }, 600);
+  });
+
+  // Tabs
+  document.querySelectorAll('.tabs .tab').forEach(t => {
+    t.addEventListener('click', () => {
+      if (t.getAttribute('aria-disabled') === 'true') return;
+      document.querySelectorAll('.tabs .tab').forEach(x => x.setAttribute('aria-selected', 'false'));
+      t.setAttribute('aria-selected', 'true');
+    });
+  });
+
+  // Switches
+  document.addEventListener('click', (e) => {
+    const sw = e.target.closest('.switch');
+    if (!sw) return;
+    sw.setAttribute('aria-checked', sw.getAttribute('aria-checked') === 'true' ? 'false' : 'true');
+  });
+
+  // Accordion
+  document.querySelectorAll('.accordion').forEach(a => {
+    a.addEventListener('click', () => a.setAttribute('aria-expanded', a.getAttribute('aria-expanded') === 'true' ? 'false' : 'true'));
+  });
+
+  // Sidebar nav selection
+  function setActive(cardId) {
+    document.querySelectorAll('.nav-item, .nav-sub').forEach(n => n.setAttribute('aria-current', n.dataset.target === cardId ? 'true' : 'false'));
+    document.querySelectorAll('[data-card]').forEach(c => c.classList.toggle('is-selected', c.id === cardId));
+  }
+  document.addEventListener('click', (e) => {
+    const n = e.target.closest('.nav-item, .nav-sub');
+    if (!n) return;
+    const id = n.dataset.target;
+    if (!id) return;
+    setActive(id);
+    const el = document.getElementById(id);
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+  document.addEventListener('click', (e) => {
+    const card = e.target.closest('[data-card]');
+    if (!card) return;
+    setActive(card.id);
+  });
+
+  // Card delete
+  document.addEventListener('click', (e) => {
+    const btn = e.target.closest('.qcard-head .icon-btn[aria-label="Delete"]');
+    if (!btn) return;
+    const card = btn.closest('[data-card]');
+    if (!card || card.id === 'card-1') return; // don't allow deleting default
+    const navItem = document.querySelector(`.nav-item[data-target="${card.id}"]`);
+    if (navItem) navItem.remove();
+    card.remove();
+    renderCoachPanel();
+    updateSummaryCount();
+  });
+
+  function updateSummaryCount() {
+    const n = document.querySelectorAll('[data-card]').length;
+    document.getElementById('summary-count').textContent = String(n);
+  }
+
+  // ─────────────────────────────────────────────────────
+  // ADD MENU
+  // ─────────────────────────────────────────────────────
+  const addMain = document.getElementById('add-main');
+  const addMenu = document.getElementById('add-menu');
+  addMain.addEventListener('click', (e) => {
+    e.stopPropagation();
+    addMenu.classList.toggle('open');
+  });
+  document.addEventListener('click', (e) => {
+    if (!addMenu.contains(e.target) && e.target !== addMain) addMenu.classList.remove('open');
+  });
+  addMenu.querySelectorAll('[data-add-kind]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      addMenu.classList.remove('open');
+      addCard(btn.dataset.addKind);
+    });
+  });
+
+  // ─────────────────────────────────────────────────────
+  // CARD FACTORY
+  // ─────────────────────────────────────────────────────
+  let cardCounter = 1;
+  function addCard(kind) {
+    cardCounter += 1;
+    const id = `card-${cardCounter}`;
+    const card = document.createElement('article');
+    card.className = 'qcard';
+    card.id = id;
+    card.dataset.card = '';
+    card.dataset.kind = kind;
+    if (kind === 'task') {
+      card.innerHTML = `
+        <header class="qcard-head">
+          <span class="pict task"><svg viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="4" stroke="currentColor" stroke-width="1.4" fill="none"/><circle cx="6" cy="6" r="1.2" fill="currentColor"/></svg></span>
+          <input class="title-input" type="text" value="Navigation task" />
+          <div class="actions">
+            <button class="icon-btn" aria-label="Duplicate"><svg viewBox="0 0 18 18" fill="none"><rect x="4" y="4" width="9" height="11" rx="1.5" stroke="currentColor" stroke-width="1.5"/><rect x="7" y="7" width="8" height="8" rx="1.5" fill="#fff" stroke="currentColor" stroke-width="1.5"/></svg></button>
+            <button class="icon-btn" aria-label="Delete"><svg viewBox="0 0 18 18" fill="none"><path d="M3 5h12M7 5V3.5A1.5 1.5 0 0 1 8.5 2h1A1.5 1.5 0 0 1 11 3.5V5M5 5l1 10h6l1-10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button>
+            <button class="icon-btn" aria-label="Move up"><svg viewBox="0 0 18 18" fill="none"><path d="M5 11l4-4 4 4" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg></button>
+            <button class="icon-btn" aria-label="Move down"><svg viewBox="0 0 18 18" fill="none"><path d="M5 7l4 4 4-4" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg></button>
+          </div>
+        </header>
+        <div class="qcard-body">
+          <div class="sub-heading"><span class="n">${cardCounter}.</span>Navigation task instructions</div>
+          <div class="field">
+            <label class="label">Starting URL</label>
+            <input class="input" type="url" placeholder="Enter a URL" />
+            <span class="helper">Verify that your URL works by opening it in a private browser</span>
+          </div>
+          <div class="field">
+            <label class="label">Task instructions</label>
+            <textarea class="input" data-coach-field="task" placeholder="Add your instructions"></textarea>
+            <div class="helper-row">
+              <span class="char-left" data-counter>Characters left: 1000</span>
+            </div>
+            <div class="inline-suggestions inline-only" data-inline-target></div>
+          </div>
+          <div>
+            <button class="btn"><svg viewBox="0 0 14 14" fill="none"><path d="M7 2v10M2 7h10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg> Add success URL</button>
+          </div>
+          <div class="toggle-row">
+            Blur recording to protect privacy
+            <svg class="info" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.3"/><path d="M8 7v4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><circle cx="8" cy="5" r="0.7" fill="currentColor"/></svg>
+            <span style="margin-left:auto"></span>
+            <button class="switch" role="switch" aria-checked="false" aria-label="Blur recording"></button>
+          </div>
+        </div>
+        <div class="qcard-section">
+          <div class="h">Follow-ups</div>
+          <div class="p">Your website or prototype will be visible during these questions.</div>
+          <div class="followup-foot">
+            <button class="btn">Add follow-up question
+              <svg viewBox="0 0 12 12" fill="none"><path d="M3 4.5l3 3 3-3" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>
+            </button>
+            <button class="add-logic">
+              <svg viewBox="0 0 12 12" fill="none"><path d="M2 2v3h3M10 10V7H7M2 5l4 4M10 2 6 6" stroke="currentColor" stroke-width="1.3" fill="none" stroke-linecap="round"/></svg>
+              Add logic
+            </button>
+          </div>
+        </div>
+      `;
+    } else {
+      card.innerHTML = `
+        <header class="qcard-head">
+          <span class="pict question"><svg viewBox="0 0 12 12" fill="none"><path d="M4 4.5a2 2 0 1 1 2.5 1.9V8" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round"/><circle cx="6.5" cy="10" r="0.7" fill="currentColor"/></svg></span>
+          <input class="title-input" type="text" value="Written response" />
+          <div class="actions">
+            <button class="icon-btn" aria-label="Duplicate"><svg viewBox="0 0 18 18" fill="none"><rect x="4" y="4" width="9" height="11" rx="1.5" stroke="currentColor" stroke-width="1.5"/><rect x="7" y="7" width="8" height="8" rx="1.5" fill="#fff" stroke="currentColor" stroke-width="1.5"/></svg></button>
+            <button class="icon-btn" aria-label="Delete"><svg viewBox="0 0 18 18" fill="none"><path d="M3 5h12M7 5V3.5A1.5 1.5 0 0 1 8.5 2h1A1.5 1.5 0 0 1 11 3.5V5M5 5l1 10h6l1-10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button>
+            <button class="icon-btn" aria-label="Move up"><svg viewBox="0 0 18 18" fill="none"><path d="M5 11l4-4 4 4" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg></button>
+            <button class="icon-btn" aria-label="Move down"><svg viewBox="0 0 18 18" fill="none"><path d="M5 7l4 4 4-4" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg></button>
+          </div>
+        </header>
+        <div class="qcard-body">
+          <div class="sub-heading"><span class="n">${cardCounter}.</span>Question</div>
+          <div class="field">
+            <label class="label">Question text</label>
+            <textarea class="input" data-coach-field="question" placeholder="Ask the participant a question"></textarea>
+            <div class="helper-row">
+              <span class="char-left" data-counter>Characters left: 1000</span>
+            </div>
+            <div class="inline-suggestions inline-only" data-inline-target></div>
+          </div>
+        </div>
+      `;
+    }
+    document.getElementById('canvas').appendChild(card);
+
+    // Sidebar entry
+    const item = document.createElement('button');
+    item.className = 'nav-item';
+    item.dataset.target = id;
+    item.innerHTML = `
+      <span class="icon ${kind}">${kind === 'task'
+        ? '<svg viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="4" stroke="currentColor" stroke-width="1.4" fill="none"/><circle cx="6" cy="6" r="1.2" fill="currentColor"/></svg>'
+        : '<svg viewBox="0 0 12 12" fill="none"><path d="M4 4.5a2 2 0 1 1 2.5 1.9V8" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round"/><circle cx="6.5" cy="10" r="0.7" fill="currentColor"/></svg>'}</span>
+      <span class="label">${kind === 'task' ? 'Navigation task' : 'Question'}</span>
+      <span class="drag"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="5" cy="4" r="1" fill="currentColor"/><circle cx="9" cy="4" r="1" fill="currentColor"/><circle cx="5" cy="7" r="1" fill="currentColor"/><circle cx="9" cy="7" r="1" fill="currentColor"/><circle cx="5" cy="10" r="1" fill="currentColor"/><circle cx="9" cy="10" r="1" fill="currentColor"/></svg></span>`;
+    document.getElementById('nav-list').appendChild(item);
+
+    wireCard(card);
+    setActive(id);
+    card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    const t = card.querySelector('textarea[data-coach-field]');
+    if (t) t.focus();
+
+    // Panel mode: open coach so the user sees it react
+    if (document.body.classList.contains('coach-mode-panel')) openCoach();
+
+    updateSummaryCount();
+  }
+
+  function wireCard(card) {
+    const ta = card.querySelector('textarea[data-coach-field]');
+    const counter = card.querySelector('[data-counter]');
+    if (ta && counter) {
+      const update = () => counter.textContent = `Characters left: ${Math.max(0, 1000 - ta.value.length)}`;
+      ta.addEventListener('input', update);
+      update();
+    }
+  }
+  // Wire the default card on load
+  document.querySelectorAll('[data-card]').forEach(wireCard);
+
+  // ─────────────────────────────────────────────────────
+  // COACH: mode toggle, panel open/close
+  // ─────────────────────────────────────────────────────
+  const body = document.body;
+  body.classList.add('coach-mode-panel');
+  const $modePanel = document.getElementById('mode-panel');
+  const $modeInline = document.getElementById('mode-inline');
+  $modePanel.addEventListener('click', () => setMode('panel'));
+  $modeInline.addEventListener('click', () => setMode('inline'));
+  function setMode(mode) {
+    body.classList.toggle('coach-mode-panel', mode === 'panel');
+    body.classList.toggle('coach-mode-inline', mode === 'inline');
+    $modePanel.setAttribute('aria-pressed', String(mode === 'panel'));
+    $modeInline.setAttribute('aria-pressed', String(mode === 'inline'));
+    if (mode === 'inline') closeCoach();
+    renderCoachPanel();
+  }
+
+  const coachFab = document.getElementById('coach-fab');
+  const coachBadge = document.getElementById('coach-badge');
+  function openCoach() {
+    body.classList.add('coach-open');
+    coachFab.classList.remove('pulse');
+    document.getElementById('coach-panel').setAttribute('aria-hidden', 'false');
+  }
+  function closeCoach() {
+    body.classList.remove('coach-open');
+    document.getElementById('coach-panel').setAttribute('aria-hidden', 'true');
+  }
+  coachFab.addEventListener('click', () => {
+    if (body.classList.contains('coach-open')) closeCoach(); else openCoach();
+  });
+  document.getElementById('coach-close').addEventListener('click', closeCoach);
+
+  // ─────────────────────────────────────────────────────
+  // COACH CONFIG
+  // ─────────────────────────────────────────────────────
+  const COACH_CONFIG = {
+    model: 'claude-sonnet-4-5-20250929',
+    studyType: 'tol', // 'survey' | 'interaction_test' | 'tol'
+    debounceMs: 300,
+  };
+  const COACH_SYSTEM_PROMPT = (document.getElementById('coach-system-prompt')?.textContent || '').trim();
+
+  const SUBMIT_REVIEW_TOOL = {
+    name: 'submit_review',
+    description: 'Submit a structured review of the test draft.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        issues: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              card_id: { type: ['string', 'null'] },
+              severity: { type: 'string', enum: ['mandatory', 'recommended'] },
+              category: { type: 'string' },
+              title: { type: 'string' },
+              why: { type: 'string' },
+              highlight: { type: 'array', items: { type: 'string' } },
+              rewrites: {
+                type: 'array',
+                items: {
+                  type: 'object',
+                  properties: { label: { type: 'string' }, text: { type: 'string' } },
+                  required: ['label', 'text']
+                }
+              },
+              affected_card_ids: { type: 'array', items: { type: 'string' } }
+            },
+            required: ['card_id', 'severity', 'category', 'title', 'why']
+          }
+        }
+      },
+      required: ['issues']
+    }
+  };
+
+  // ─────────────────────────────────────────────────────
+  // STATE COLLECTION
+  // ─────────────────────────────────────────────────────
+  function inferTaskType(card) {
+    // Extend as you add more task types (rating, NPS, matrix, etc.)
+    return card.dataset.kind === 'task' ? 'url' : 'written';
+  }
+  function collectTestState() {
+    const cards = Array.from(document.querySelectorAll('[data-card]')).map(c => ({
+      card_id: c.id,
+      kind: c.dataset.kind,
+      task_type: inferTaskType(c),
+      title: c.querySelector('.title-input')?.value || '',
+      content: c.querySelector('textarea[data-coach-field]')?.value || ''
+    }));
+    return { study_type: COACH_CONFIG.studyType, cards };
+  }
+
+  // ─────────────────────────────────────────────────────
+  // MOCK COACH
+  // ─────────────────────────────────────────────────────
+  // Pattern-aware mock that inspects the user's actual content and returns
+  // a plausible LLM-shaped review. Flip the "Demo" toggle in the coach header
+  // (or load with ?demo=1) to switch to a scripted sequence for live presentations.
+
+  let demoMode = new URLSearchParams(window.location.search).get('demo') === '1';
+
+  async function callCoach(state) {
+    // Simulated latency so the loading state actually shows
+    await new Promise(r => setTimeout(r, 500 + Math.random() * 500));
+
+    if (demoMode) {
+      return scriptedDemoReview(state);
+    }
+    return patternAwareReview(state);
+  }
+
+  // ─────────────────────────────────────────────────────
+  // PATTERN-AWARE REVIEW (default)
+  // ─────────────────────────────────────────────────────
+  function patternAwareReview(state) {
+    const issues = [];
+
+    for (const card of state.cards) {
+      if (!card.content.trim()) continue;
+      [
+        detectLoadedLanguage(card),
+        detectLeading(card),
+        detectDoubleBarreled(card),
+        detectMissingScenario(card),
+        detectMissingEndpoint(card),
+        detectNoThinkAloud(card, state.study_type),
+        detectGaveHints(card),
+        detectVagueReference(card),
+        detectTooLong(card),
+        detectMissingPunctuation(card)
+      ].forEach(i => i && issues.push(i));
+    }
+
+    [
+      detectBackToBackUrl(state),
+      detectMissingFollowUp(state),
+      detectNpsTooEarly(state)
+    ].forEach(i => i && issues.push(i));
+
+    return { issues };
+  }
+
+  // ── Field-level detectors ────────────────────────────
+
+  function detectLoadedLanguage(card) {
+    const adjectives = ['beautiful', 'amazing', 'awesome', 'great', 'wonderful', 'sleek', 'modern', 'improved', 'better', 'best', 'gorgeous', 'stunning', 'lovely', 'fantastic', 'excellent'];
+    const lower = card.content.toLowerCase();
+    const hits = adjectives.filter(w => new RegExp('\\b' + w + '\\b').test(lower));
+    if (!hits.length) return null;
+
+    let cleaned = card.content;
+    hits.forEach(w => {
+      cleaned = cleaned.replace(new RegExp('\\b' + w + '\\b\\s*', 'gi'), '');
+    });
+    cleaned = cleaned.replace(/\s+/g, ' ').replace(/\s+([.,;:!?])/g, '$1').trim();
+
+    return {
+      card_id: card.card_id,
+      severity: 'mandatory',
+      category: 'loaded_language',
+      title: 'Loaded language',
+      why: `Adjectives like "${hits[0]}" tell participants how they should feel about the experience before they've formed their own opinion. Stay neutral and let their real reaction emerge.`,
+      highlight: hits,
+      rewrites: [{ label: 'Apply suggestion', text: cleaned }]
+    };
+  }
+
+  function detectLeading(card) {
+    if (card.kind !== 'question') return null;
+    const verbs = ['love', 'enjoy', 'appreciate', 'like', 'hate', 'dislike'];
+    const lower = card.content.toLowerCase();
+    const hits = verbs.filter(w => new RegExp('\\b' + w + '\\b').test(lower));
+    if (!hits.length) return null;
+
+    // Try to pull the subject of the question for the rewrites
+    const m = card.content.match(/about\s+(.+?)\??$/i)
+          || card.content.match(/(?:love|enjoy|appreciate|like|hate|dislike)\s+(?:our|the|this|your)?\s*(.+?)\??$/i);
+    const subject = m ? m[1].trim().replace(/^(our|the|this|your)\s+/i, '') : 'this experience';
+
+    return {
+      card_id: card.card_id,
+      severity: 'mandatory',
+      category: 'leading',
+      title: 'Leading question',
+      why: `Asking how much someone "${hits[0]}s" something assumes the answer. Participants tend to agree to be polite, so you'll over-count positive responses. Use a neutral open question — or a balanced rating scale if you need quantitative data.`,
+      highlight: hits,
+      rewrites: [
+        { label: 'Use open version',   text: `How would you describe your experience with ${subject}?` },
+        { label: 'Use rating version', text: `How difficult or easy was ${subject}?` }
+      ]
+    };
+  }
+
+  function detectDoubleBarreled(card) {
+    if (card.kind !== 'question') return null;
+    // Skip false positives like "difficult or easy" which is a balanced scale, not a double-barrel
+    if (/\b(difficult|hard)\s+or\s+easy\b|\beasy\s+or\s+(difficult|hard)\b/i.test(card.content)) return null;
+
+    const re = /\b(easy|clear|useful|helpful|fast|simple|fun|engaging|relevant|trustworthy)\s+and\s+(easy|clear|useful|helpful|fast|simple|fun|engaging|relevant|trustworthy)\b/i;
+    const match = card.content.match(re);
+    if (!match) return null;
+
+    const [, a, b] = match;
+    return {
+      card_id: card.card_id,
+      severity: 'mandatory',
+      category: 'double_barreled',
+      title: 'Double-barreled question',
+      why: `You're asking two things at once ("${a}" and "${b}"), so any single answer mixes them. Someone who found it ${a} but not ${b} has no way to tell you. Pick the one that matters more, or split into two questions.`,
+      highlight: [`${a} and ${b}`],
+      rewrites: [
+        { label: `Ask about "${a}"`, text: card.content.replace(re, a) },
+        { label: `Ask about "${b}"`, text: card.content.replace(re, b) }
+      ]
+    };
+  }
+
+  function detectMissingScenario(card) {
+    if (card.kind !== 'task') return null;
+    if (card.task_type !== 'url' && card.task_type !== 'figma') return null;
+    if (/imagine|suppose|you're|you are|let's say|pretend|for the purposes/i.test(card.content)) return null;
+
+    return {
+      card_id: card.card_id,
+      severity: 'recommended',
+      category: 'missing_scenario',
+      title: 'Missing scenario',
+      why: `There's no "why" for the participant. A short scenario ("Imagine you're…") gives them realistic motivation, which leads to more authentic behavior than dropping them straight into an abstract task.`,
+      highlight: [],
+      rewrites: [{
+        label: 'Add a scenario',
+        text: `Imagine you're a new user exploring this product for the first time. ${card.content.trim()}`
+      }]
+    };
+  }
+
+  function detectMissingEndpoint(card) {
+    if (card.kind !== 'task') return null;
+    if (card.task_type !== 'url' && card.task_type !== 'figma') return null;
+    if (/once|when (you|the).*(complete|finish|done|return|click)|click (next|success|abandon)|return here|return to|stop when/i.test(card.content)) return null;
+
+    const ending = card.task_type === 'url'
+      ? "Once you're done, return here and click Next."
+      : "Stop when you reach the confirmation screen.";
+    let rewritten = card.content.trim();
+    rewritten = /[.?!]$/.test(rewritten) ? `${rewritten} ${ending}` : `${rewritten}. ${ending}`;
+
+    return {
+      card_id: card.card_id,
+      severity: 'mandatory',
+      category: 'missing_endpoint',
+      title: 'No clear end point',
+      why: `The participant doesn't know when they've succeeded. Tell them what to do when they're done so you get a clean handoff and a clear success signal.`,
+      highlight: [],
+      rewrites: [{ label: 'Add an end point', text: rewritten }]
+    };
+  }
+
+  function detectNoThinkAloud(card, studyType) {
+    if (studyType !== 'tol') return null;
+    if (card.kind !== 'task') return null;
+    if (/think (out )?loud|share your thoughts|talk (us )?through|narrate|speak.*(thoughts|aloud)/i.test(card.content)) return null;
+
+    let rewritten = card.content.trim();
+    rewritten = /[.?!]$/.test(rewritten) ? `${rewritten} Think out loud as you go.` : `${rewritten}. Think out loud as you go.`;
+
+    return {
+      card_id: card.card_id,
+      severity: 'recommended',
+      category: 'no_think_aloud',
+      title: 'Missing think-aloud reminder',
+      why: `Without a nudge to narrate, participants tend to go silent. A single line ("Think out loud as you go") keeps the qualitative gold flowing — and TOL studies live or die by what participants say out loud.`,
+      highlight: [],
+      rewrites: [{ label: 'Add think-aloud reminder', text: rewritten }]
+    };
+  }
+
+  function detectGaveHints(card) {
+    if (card.kind !== 'task') return null;
+    const matches = card.content.match(/['"]([A-Z][a-z]+(?:\s+[A-Z]?[a-z]+)?)['"]/g);
+    if (!matches || !matches.length) return null;
+
+    let rewritten = card.content;
+    matches.forEach(quoted => {
+      const label = quoted.replace(/['"]/g, '');
+      const lower = label.toLowerCase();
+      let replacement;
+      if (lower.includes('sign up') || lower.includes('register'))    replacement = "where you'd sign up";
+      else if (lower.includes('sign in') || lower.includes('log in')) replacement = "where you'd log in";
+      else if (lower.includes('submit'))                              replacement = "where you'd submit";
+      else if (lower.includes('checkout'))                            replacement = "the checkout step";
+      else if (lower.includes('buy') || lower.includes('purchase'))   replacement = "where you'd complete the purchase";
+      else                                                            replacement = `the option for "${lower}"`;
+      rewritten = rewritten.replace(quoted, replacement);
+    });
+
+    return {
+      card_id: card.card_id,
+      severity: 'recommended',
+      category: 'gave_hints',
+      title: 'May give away the answer',
+      why: `Quoting button labels like ${matches[0]} tells the participant exactly what to look for — you lose the chance to test whether the labeling itself is clear. Describe what they're trying to accomplish instead of what to click.`,
+      highlight: matches,
+      rewrites: [{ label: 'Describe the goal instead', text: rewritten }]
+    };
+  }
+
+  function detectVagueReference(card) {
+    if (card.kind !== 'question') return null;
+    const patterns = [
+      /\bin the previous (question|task|step)\b/i,
+      /\bas (you )?mentioned (above|earlier|before)\b/i,
+      /\bthe question above\b/i,
+      /\bbased on (what you|your) answer(ed)?\b/i
+    ];
+    const hit = patterns.find(p => p.test(card.content));
+    if (!hit) return null;
+
+    return {
+      card_id: card.card_id,
+      severity: 'mandatory',
+      category: 'vague_reference',
+      title: 'Vague reference to earlier content',
+      why: `Phrases like "the previous question" force participants to remember what they just saw. Make each question self-contained — name the thing you're asking about directly.`,
+      highlight: [card.content.match(hit)[0]],
+      rewrites: []
+    };
+  }
+
+  function detectTooLong(card) {
+    if (card.content.length <= 500) return null;
+    return {
+      card_id: card.card_id,
+      severity: 'mandatory',
+      category: 'too_long',
+      title: 'Over 500 characters',
+      why: `This is ${card.content.length} characters. Tasks and questions should stay at 500 or under so participants can hold the whole thing in mind. Cut anything that isn't essential to the action.`,
+      highlight: [],
+      rewrites: []
+    };
+  }
+
+  function detectMissingPunctuation(card) {
+    const trimmed = card.content.trim();
+    if (!trimmed.length) return null;
+    if (/[.?!]$/.test(trimmed)) return null;
+
+    const isQuestion = /^(how|what|when|where|why|which|who|do|does|is|are|can|could|would|will|should)\b/i.test(trimmed);
+    const punct = isQuestion ? '?' : '.';
+
+    return {
+      card_id: card.card_id,
+      severity: 'recommended',
+      category: 'wrong_punctuation',
+      title: isQuestion ? 'Missing question mark' : 'Missing period',
+      why: `End ${isQuestion ? 'questions with "?"' : 'statements with "."'} so participants can tell where each prompt ends.`,
+      highlight: [],
+      rewrites: [{ label: 'Add punctuation', text: trimmed + punct }]
+    };
+  }
+
+  // ── Structural detectors ─────────────────────────────
+
+  function detectBackToBackUrl(state) {
+    if (state.study_type !== 'interaction_test' && state.study_type !== 'tol') return null;
+    for (let i = 0; i < state.cards.length - 1; i++) {
+      const a = state.cards[i], b = state.cards[i + 1];
+      if (a.kind === 'task' && a.task_type === 'url' && a.content.trim() &&
+          b.kind === 'task' && b.task_type === 'url' && b.content.trim()) {
+        return {
+          card_id: null,
+          severity: 'mandatory',
+          category: 'back_to_back_url',
+          title: 'Two URL tasks in a row',
+          why: `"${a.title || 'Task ' + (i + 1)}" and "${b.title || 'Task ' + (i + 2)}" are both URL tasks placed back-to-back. Participants get fatigued and miss the context-switch. Add a question or rating between them.`,
+          highlight: [],
+          rewrites: [],
+          affected_card_ids: [a.card_id, b.card_id]
+        };
+      }
+    }
+    return null;
+  }
+
+  function detectMissingFollowUp(state) {
+    for (let i = 0; i < state.cards.length; i++) {
+      const c = state.cards[i];
+      if (c.task_type !== 'ratingscale' && c.task_type !== 'nps') continue;
+      if (!c.content.trim()) continue;
+      const next = state.cards[i + 1];
+      if (next && (next.task_type === 'written' || next.task_type === 'verbal')) continue;
+
+      const typeName = c.task_type === 'nps' ? 'NPS' : 'rating-scale';
+      return {
+        card_id: null,
+        severity: 'mandatory',
+        category: 'missing_follow_up',
+        title: `${typeName} needs a follow-up`,
+        why: `"${c.title || 'This card'}" is a ${typeName} question, but there's no written or verbal follow-up explaining the score. Without it, you'll have numbers but no idea why participants chose them.`,
+        highlight: [],
+        rewrites: [],
+        affected_card_ids: [c.card_id]
+      };
+    }
+    return null;
+  }
+
+  function detectNpsTooEarly(state) {
+    const idx = state.cards.findIndex(c => c.task_type === 'nps' && c.content.trim());
+    if (idx === -1) return null;
+    if (idx >= Math.ceil(state.cards.length / 3)) return null;
+
+    return {
+      card_id: null,
+      severity: 'recommended',
+      category: 'nps_placement',
+      title: 'NPS placed too early',
+      why: `NPS asks participants to rate the overall experience, but it's in the first third of your test — before they've had enough exposure to form a real opinion. Move it toward the end so the score reflects the full experience.`,
+      highlight: [],
+      rewrites: [],
+      affected_card_ids: [state.cards[idx].card_id]
+    };
+  }
+
+  // ─────────────────────────────────────────────────────
+  // SCRIPTED DEMO SEQUENCE (?demo=1)
+  // ─────────────────────────────────────────────────────
+  let demoStep = 0;
+  function scriptedDemoReview(state) {
+    const focus = state.cards.find(c => c.content.trim()) || state.cards[0];
+    if (!focus) return { issues: [] };
+
+    const sequence = [
+      {
+        issues: [{
+          card_id: focus.card_id,
+          severity: 'mandatory',
+          category: 'loaded_language',
+          title: 'Loaded language',
+          why: `Words like "beautiful" or "improved" tell participants how to feel before they've had the experience. Stay neutral so you measure their real reaction.`,
+          highlight: ['beautiful', 'improved'],
+          rewrites: [{
+            label: 'Apply suggestion',
+            text: focus.content.replace(/\b(beautiful|improved|new and improved|amazing)\b\s*/gi, '').replace(/\s+/g, ' ').trim()
+          }]
+        }]
+      },
+      {
+        issues: [{
+          card_id: focus.card_id,
+          severity: 'recommended',
+          category: 'missing_scenario',
+          title: 'Missing scenario',
+          why: `There's no "why" for the participant. A short scenario gives them realistic motivation, which leads to more authentic behavior.`,
+          highlight: [],
+          rewrites: [{
+            label: 'Add a scenario',
+            text: `Imagine you're a new user exploring this product for the first time. ${focus.content.trim()}`
+          }]
+        }]
+      },
+      {
+        issues: [{
+          card_id: null,
+          severity: 'mandatory',
+          category: 'missing_follow_up',
+          title: 'Rating needs a follow-up',
+          why: `Rating scales without a written or verbal follow-up give you numbers without context. Add a question asking participants to briefly explain their score.`,
+          highlight: [],
+          rewrites: [],
+          affected_card_ids: state.cards.length > 1 ? [state.cards[1].card_id] : [focus.card_id]
+        }]
+      },
+      { issues: [] }
+    ];
+
+    const out = sequence[demoStep % sequence.length];
+    demoStep++;
+    return out;
+  }
+
+  // ─────────────────────────────────────────────────────
+  // ANALYSIS DRIVER
+  // ─────────────────────────────────────────────────────
+  let lastAnalyzedState = '';
+  let analysisInFlight = false;
+  let structuralIssues = [];
+  const dismissed = new Map(); // Map<cardId, Set<category>>
+
+  async function analyzeTest() {
+    const state = collectTestState();
+    const stateKey = JSON.stringify(state);
+
+    if (state.cards.every(c => !c.content.trim())) {
+      document.querySelectorAll('[data-card]').forEach(c => {
+        c.dataset.issues = '[]';
+        c.classList.remove('has-issues');
+        renderInline(c, []);
+      });
+      structuralIssues = [];
+      renderCoachPanel();
+      return;
+    }
+    if (stateKey === lastAnalyzedState || analysisInFlight) return;
+    lastAnalyzedState = stateKey;
+    analysisInFlight = true;
+    setCoachLoading(true);
+
+    try {
+      const review = await callCoach(state);
+      applyReview(review);
+    } catch (err) {
+      console.error('Coach error:', err);
+      showCoachError(err.message);
+    } finally {
+      analysisInFlight = false;
+    }
+  }
+
+  function applyReview(review) {
+    const issues = Array.isArray(review.issues) ? review.issues : [];
+    document.querySelectorAll('[data-card]').forEach(c => {
+      const dSet = dismissed.get(c.id) || new Set();
+      const cardIssues = issues.filter(i => i.card_id === c.id).filter(i => !dSet.has(i.category));
+      c.dataset.issues = JSON.stringify(cardIssues);
+      c.classList.toggle('has-issues', cardIssues.length > 0);
+      renderInline(c, cardIssues);
+    });
+    structuralIssues = issues.filter(i => i.card_id == null);
+    renderCoachPanel();
+
+    const total = document.querySelectorAll('.qcard.has-issues').length + structuralIssues.length;
+    if (total > 0 && !document.body.classList.contains('coach-open') && document.body.classList.contains('coach-mode-panel')) {
+      coachFab.classList.add('pulse');
+    } else {
+      coachFab.classList.remove('pulse');
+    }
+  }
+
+  // ─────────────────────────────────────────────────────
+  // RENDER
+  // ─────────────────────────────────────────────────────
+  function renderInline(card, issues) {
+    const target = card.querySelector('[data-inline-target]');
+    if (!target) return;
+    target.innerHTML = '';
+    issues.forEach(issue => target.appendChild(buildSuggestion(card, issue)));
+  }
+
+  function setCoachLoading(loading) {
+    const status = document.getElementById('coach-status');
+    if (loading) {
+      status.innerHTML = `<span class="pill warn">Reviewing…</span><span class="right">Grounded in UT playbook</span>`;
+    }
+  }
+  function showCoachError(msg) {
+    const status = document.getElementById('coach-status');
+    status.innerHTML = `<span class="pill" style="background:var(--status-err-bg);color:var(--status-err-fg);">Coach unavailable</span><span class="right" style="color:var(--ink-4);">${escapeHtml(msg).slice(0,90)}</span>`;
+  }
+
+  function renderCoachPanel() {
+    const feed = document.getElementById('coach-feed');
+    const empty = document.getElementById('coach-empty');
+    const status = document.getElementById('coach-status');
+    const cards = Array.from(document.querySelectorAll('[data-card]'));
+
+    const cardCount = cards.reduce((n, c) => { try { return n + JSON.parse(c.dataset.issues || '[]').length; } catch { return n; } }, 0);
+    const totalCount = cardCount + structuralIssues.length;
+    coachFab.dataset.count = String(totalCount);
+    coachBadge.textContent = String(totalCount);
+
+    if (totalCount === 0) {
+      status.innerHTML = `<span class="pill ok"><svg viewBox="0 0 12 12" fill="none"><path d="M2.5 6l2.5 2.5 4.5-5" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg>Looks good so far</span><span class="right">Grounded in UT playbook</span>`;
+    } else {
+      const mand = [...cards.flatMap(c => { try { return JSON.parse(c.dataset.issues||'[]'); } catch { return []; } }), ...structuralIssues].filter(i => i.severity === 'mandatory').length;
+      const rec = totalCount - mand;
+      status.innerHTML = `<span class="pill warn">${mand} must fix · ${rec} suggestion${rec===1?'':'s'}</span><span class="right">Grounded in UT playbook</span>`;
+    }
+
+    feed.innerHTML = '';
+    const hasAnyContent = cards.some(c => (c.querySelector('textarea[data-coach-field]')?.value || '').trim().length > 0);
+    if (!hasAnyContent) { feed.appendChild(empty); return; }
+
+    const greet = document.createElement('div');
+    greet.className = 'msg bot';
+    greet.innerHTML = `<span class="mini-avatar"><svg viewBox="0 0 24 24" fill="none"><path d="M12 3l1.6 4.4L18 9l-4.4 1.6L12 15l-1.6-4.4L6 9l4.4-1.6L12 3z" fill="currentColor"/></svg></span><div class="bubble">Reviewing what you've written. Here's what I noticed:</div>`;
+    feed.appendChild(greet);
+
+    cards.forEach(card => {
+      const issues = (() => { try { return JSON.parse(card.dataset.issues || '[]'); } catch { return []; } })();
+      const ta = card.querySelector('textarea[data-coach-field]');
+      if (!ta || ta.value.trim().length === 0) return;
+      if (issues.length === 0) {
+        const ok = document.createElement('div');
+        ok.className = 'msg bot';
+        const title = card.querySelector('.title-input')?.value || 'Item';
+        ok.innerHTML = `<span class="mini-avatar"><svg viewBox="0 0 24 24" fill="none"><path d="M12 3l1.6 4.4L18 9l-4.4 1.6L12 15l-1.6-4.4L6 9l4.4-1.6L12 3z" fill="currentColor"/></svg></span><div class="bubble"><strong>${escapeHtml(title)}</strong> — looks good.</div>`;
+        feed.appendChild(ok);
+        return;
+      }
+      issues.forEach(issue => appendIssueToFeed(feed, card, issue));
+    });
+
+    structuralIssues.forEach(issue => appendIssueToFeed(feed, null, issue));
+  }
+
+  function appendIssueToFeed(feed, card, issue) {
+    const wrap = document.createElement('div');
+    wrap.className = 'msg bot';
+    const inner = document.createElement('div');
+    inner.className = 'grow';
+    inner.appendChild(buildSuggestion(card, issue));
+    wrap.innerHTML = `<span class="mini-avatar"><svg viewBox="0 0 24 24" fill="none"><path d="M12 3l1.6 4.4L18 9l-4.4 1.6L12 15l-1.6-4.4L6 9l4.4-1.6L12 3z" fill="currentColor"/></svg></span>`;
+    wrap.appendChild(inner);
+    feed.appendChild(wrap);
+  }
+
+  function buildSuggestion(card, issue) {
+    const el = document.createElement('div');
+    el.className = 'suggestion';
+    el.dataset.severity = issue.severity;
+    el.dataset.category = issue.category || '';
+
+    const cardTitle = card ? (card.querySelector('.title-input')?.value || '') : 'Test structure';
+    const sevBadge = issue.severity === 'mandatory' ? 'Must fix' : 'Suggestion';
+    const whyHtml = highlightHits(issue.why, issue.highlight || []);
+    const rewrites = Array.isArray(issue.rewrites) ? issue.rewrites : [];
+    const previewsHtml = rewrites.map(r => `<div class="preview">${escapeHtml(r.text)}</div>`).join('');
+    const buttonsHtml = rewrites.map((r, i) => `<button class="${i===0?'btn primary':'btn'}" data-apply-index="${i}">${escapeHtml(r.label || 'Apply')}</button>`).join('');
+
+    el.innerHTML = `
+      <div class="head">
+        <span class="icon"><svg viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="5" stroke="currentColor" stroke-width="1.3" fill="none"/><path d="M6 3.5v3.2" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><circle cx="6" cy="8.3" r="0.7" fill="currentColor"/></svg></span>
+        <div style="flex:1;display:flex;flex-direction:column;gap:2px;">
+          <span class="title">${escapeHtml(issue.title)} <span class="sev-badge sev-${issue.severity}">${sevBadge}</span></span>
+          <span class="target">${escapeHtml(cardTitle)}</span>
+        </div>
+      </div>
+      <div class="why">${whyHtml}</div>
+      ${previewsHtml}
+      <div class="actions">
+        ${buttonsHtml}
+        ${card ? '<button class="btn" data-dismiss>Dismiss</button>' : ''}
+      </div>
+      <div class="applied-tag">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2.5 6l2.5 2.5 4.5-5" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg>
+        Applied
+      </div>`;
+
+    el.querySelectorAll('[data-apply-index]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const r = rewrites[Number(btn.dataset.applyIndex)];
+        if (card && r) {
+          applyRewrite(card, r.text);
+          el.dataset.applied = 'true';
+        }
+      });
+    });
+    el.querySelector('[data-dismiss]')?.addEventListener('click', () => {
+      if (!card) return;
+      const set = dismissed.get(card.id) || new Set();
+      set.add(issue.category);
+      dismissed.set(card.id, set);
+      const remaining = JSON.parse(card.dataset.issues || '[]').filter(i => i.category !== issue.category);
+      card.dataset.issues = JSON.stringify(remaining);
+      card.classList.toggle('has-issues', remaining.length > 0);
+      renderInline(card, remaining);
+      renderCoachPanel();
+    });
+    return el;
+  }
+
+  function applyRewrite(card, text) {
+    const ta = card.querySelector('textarea[data-coach-field]');
+    if (!ta) return;
+    ta.value = text;
+    ta.classList.remove('just-applied'); void ta.offsetWidth; ta.classList.add('just-applied');
+    ta.dispatchEvent(new Event('input', { bubbles: true }));
+    lastAnalyzedState = '';
+    setTimeout(() => analyzeTest(), 200);
+  }
+
+  // ─────────────────────────────────────────────────────
+  // TRIGGER — on blur (focus moves out of a coach field)
+  // ─────────────────────────────────────────────────────
+  let blurTimer;
+  document.addEventListener('focusout', (e) => {
+    const t = e.target;
+    if (!t.matches || !t.matches('textarea[data-coach-field], .title-input')) return;
+    clearTimeout(blurTimer);
+    blurTimer = setTimeout(() => analyzeTest(), COACH_CONFIG.debounceMs);
+  });
+
+  // ─────────────────────────────────────────────────────
+  // DEMO TOGGLE — switches callCoach between pattern-aware and scripted
+  // ─────────────────────────────────────────────────────
+  const demoToggleEl = document.getElementById('demo-toggle');
+  if (demoToggleEl) {
+    demoToggleEl.checked = demoMode;
+    demoToggleEl.addEventListener('change', () => {
+      demoMode = demoToggleEl.checked;
+      demoStep = 0;
+      lastAnalyzedState = '';
+      analyzeTest();
+    });
+  }
+
+  // Helpers (these were in the old code — keep them if you already have them)
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+  function highlightHits(text, hits) {
+    let out = escapeHtml(text);
+    if (!hits || !hits.length) return out;
+    hits.forEach(h => {
+      const escaped = escapeHtml(h).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      out = out.replace(new RegExp('(' + escaped + ')', 'gi'), '<span class="hits">$1</span>');
+    });
+    return out;
+  }
+
+  // Initial render
+  renderCoachPanel();
+</script>
+</body>
+</html>
